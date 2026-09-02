@@ -388,12 +388,12 @@ class QueryExecutor {
     requireNonNull(statement, "statement cannot be null");
 
     // Tip the scales in favor of the user getting a client-enforced timeout
-    // (surfaced as UncheckedTimeoutException) instead of a server-enforced timeout
+    // (surfaced as InsightsTimeoutException) instead of a server-enforced timeout
     // (surfaced as QueryTimeout).
     //
     // This was arguably a mistake; it might be better to tip the scales the other way
     // so the user is more likely to get an unambiguous signal when the query times out
-    // on the server, as opposed to the current ambiguous `UncheckedTimeoutException`
+    // on the server, as opposed to the current ambiguous `InsightsTimeoutException`
     // which could also indicate a network issue between the client and server.
     serverTimeout = serverTimeout.plus(Duration.ofSeconds(5));
 

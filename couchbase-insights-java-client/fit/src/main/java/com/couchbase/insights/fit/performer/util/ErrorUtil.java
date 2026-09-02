@@ -16,7 +16,7 @@
 package com.couchbase.insights.fit.performer.util;
 
 import com.couchbase.insights.client.java.InsightsException;
-import com.couchbase.insights.client.java.UncheckedTimeoutException;
+import com.couchbase.insights.client.java.InsightsTimeoutException;
 import com.couchbase.insights.client.java.InvalidCredentialException;
 import com.couchbase.insights.client.java.QueryException;
 import com.couchbase.insights.client.java.QueryNotFoundException;
@@ -38,13 +38,13 @@ public class ErrorUtil {
   public static fit.columnar.Error convertError(Throwable raw) {
     var ret = fit.columnar.Error.newBuilder();
 
-    // FIT framework assumes clients surface all server-side timeouts as UncheckedTimeoutException,
-    // but this is incompatible with the documented semantics of UncheckedTimeoutException, which is
+    // FIT framework assumes clients surface all server-side timeouts as InsightsTimeoutException,
+    // but this is incompatible with the documented semantics of InsightsTimeoutException, which is
     // "Thrown if an interaction with the Analytics cluster does not complete before its timeout expires."
-    // In this case, the interaction completed, so UncheckedTimeoutException is not appropriate.
+    // In this case, the interaction completed, so InsightsTimeoutException is not appropriate.
     // Convert it to a timeout exception just for the FIT driver.
     if (raw instanceof QueryException queryException && queryException.code() == 21002) {
-      raw = new UncheckedTimeoutException(raw.getMessage());
+      raw = new InsightsTimeoutException(raw.getMessage());
     }
 
     if (raw instanceof InsightsException) {
@@ -65,7 +65,7 @@ public class ErrorUtil {
           .build());
       }
 
-      if (raw instanceof UncheckedTimeoutException) {
+      if (raw instanceof InsightsTimeoutException) {
         out.setSubException(fit.columnar.SubColumnarError.newBuilder().setTimeoutException(fit.columnar.TimeoutException.newBuilder().build())
           .build());
       }
