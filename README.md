@@ -73,3 +73,5 @@ For more examples, including how to handle large result sets, see the source cod
 ## Migrating
 
 See the [Migration Guide](MIGRATING.md) if you're migrating from the Couchbase Java SDK.
+
+See the [Enterprise Analytics Migration Guide](MIGRATING-FROM_ENTERPRISE-ANALYTICS.md) if you're migrating from the Couchbase Enterprise Analytics SDK.
