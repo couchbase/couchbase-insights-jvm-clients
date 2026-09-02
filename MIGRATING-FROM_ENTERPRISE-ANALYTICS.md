@@ -6,4 +6,4 @@ To migrate from `couchbase-analytics-java-client` to `couchbase-insights-java-cl
 
 2. Search for `AnalyticsTimeoutException` and replace with `InsightsTimeoutException`
 
-3. Search for `AnalyticsException` and replace with `InsightsTimeoutException`
+3. Search for `AnalyticsException` and replace with `InsightsException`
