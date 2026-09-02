@@ -6,7 +6,7 @@
 
     <parent>
         <groupId>com.couchbase.client</groupId>
-        <artifactId>couchbase-analytics-jvm-clients</artifactId>
+        <artifactId>couchbase-insights-jvm-clients</artifactId>
         <version>${revision}</version>
     </parent>
 

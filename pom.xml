@@ -4,12 +4,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.couchbase.client</groupId>
-    <artifactId>couchbase-analytics-jvm-clients</artifactId>
+    <artifactId>couchbase-insights-jvm-clients</artifactId>
     <version>${revision}</version>
     <packaging>pom</packaging>
 
-    <name>Couchbase Analytics JVM Client Parent</name>
-    <description>Parent POM for Couchbase Analytics JVM projects</description>
+    <name>Couchbase Operational Insights JVM Client Parent</name>
+    <description>Parent POM for Couchbase Operational Insights JVM client projects</description>
     <url>https://couchbase.com</url>
 
     <licenses>
@@ -30,8 +30,8 @@
     </properties>
 
     <modules>
-        <module>couchbase-analytics-java-client</module>
-        <module>couchbase-analytics-java-client/extensions/couchbase-analytics-java-client-reactor</module>
+        <module>couchbase-insights-java-client</module>
+        <module>couchbase-insights-java-client/extensions/couchbase-insights-java-client-reactor</module>
     </modules>
 
     <developers>
@@ -42,10 +42,10 @@
         </developer>
     </developers>
     <scm>
-        <connection>scm:git:git://github.com/couchbaselabs/couchbase-analytics-jvm-clients</connection>
-        <developerConnection>scm:git:git://github.com/couchbaselabs/couchbase-analytics-jvm-clients
+        <connection>scm:git:git://github.com/couchbase/couchbase-insights-jvm-clients</connection>
+        <developerConnection>scm:git:git://github.com/couchbase/couchbase-insights-jvm-clients
         </developerConnection>
-        <url>https://github.com/couchbaselabs/couchbase-analytics-jvm-clients/tree/main</url>
+        <url>https://github.com/couchbase/couchbase-insights-jvm-clients/tree/main</url>
     </scm>
 
     <build>
@@ -364,7 +364,7 @@
             <id>fit</id>
             <modules>
                 <module>fit-performer-protocol</module>
-                <module>couchbase-analytics-java-client/fit</module>
+                <module>couchbase-insights-java-client/fit</module>
             </modules>
         </profile>
         <profile>

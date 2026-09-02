@@ -1,15 +1,15 @@
-# couchbase-analytics-jvm-clients
+# couchbase-insights-jvm-clients
 
-[![Maven Central](https://maven-badges.sml.io/sonatype-central/com.couchbase.client/couchbase-analytics-java-client/badge.svg?subject=Maven%20Central&color=blue)](https://central.sonatype.com/artifact/com.couchbase.client/couchbase-analytics-java-client)
+[![Maven Central](https://maven-badges.sml.io/sonatype-central/com.couchbase.client/couchbase-insights-java-client/badge.svg?subject=Maven%20Central&color=blue)](https://central.sonatype.com/artifact/com.couchbase.client/couchbase-insights-java-client)
 
-JVM clients for Couchbase Enterprise Analytics
+JVM clients for Couchbase Operational Insights
 
 
 ## Maven Coordinates
 ```xml
 <dependency>
     <groupId>com.couchbase.client</groupId>
-    <artifactId>couchbase-analytics-java-client</artifactId>
+    <artifactId>couchbase-insights-java-client</artifactId>
     <version>x.y.z</version>
 </dependency>
 ```
@@ -68,7 +68,7 @@ for (Row row : result.rows()) {
 }
 ```
 
-For more examples, including how to handle large result sets, see the source code in the [Maven project template](couchbase-analytics-java-client/examples/maven-project-template).
+For more examples, including how to handle large result sets, see the source code in the [Maven project template](couchbase-insights-java-client/examples/maven-project-template).
 
 ## Migrating
 

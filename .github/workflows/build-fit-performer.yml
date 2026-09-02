@@ -36,7 +36,7 @@ jobs:
     steps:
       - uses: couchbaselabs/sdk-docker-build-action@v1
         with:
-          sdk: analytics-java
+          sdk: insights-java
           ref: ${{ inputs.ref }}
         env:
           DOCKER_BUILD_SUMMARY: false

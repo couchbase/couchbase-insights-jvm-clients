@@ -48,4 +48,4 @@ jobs:
           aws-region: us-west-1
 
       - name: Upload API documentation
-        run: aws s3 cp --recursive --acl public-read couchbase-analytics-java-client/target/reports/apidocs/ s3://docs.couchbase.com/sdk-api/couchbase-analytics-java-client-${{ inputs.tag }}
+        run: aws s3 cp --recursive --acl public-read couchbase-insights-java-client/target/reports/apidocs/ s3://docs.couchbase.com/sdk-api/couchbase-operational-insights-java-client-${{ inputs.tag }}

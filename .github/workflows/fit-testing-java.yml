@@ -37,6 +37,6 @@ jobs:
     with:
       preset: ${{ vars.FIT_CLI_PRESET || inputs.preset || 'enterprise-analytics-multi-lite' }}
       collect_extra_diagnostics: ${{ inputs.collect_extra_diagnostics == '' && true || inputs.collect_extra_diagnostics }}
-      performer: 'analytics-java-fit-performer:main'
+      performer: 'insights-java-fit-performer:main'
       channel: ${{ vars.FIT_CLI_CHANNEL || inputs.channel }}
       slack_thread: ${{ inputs.slack_thread || 'https://couchbase.slack.com/archives/C05LNBVQRE3/p1786699340394109' }}
