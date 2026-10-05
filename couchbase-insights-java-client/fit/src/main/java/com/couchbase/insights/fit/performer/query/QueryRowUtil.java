@@ -22,7 +22,7 @@ import com.couchbase.insights.fit.performer.util.ErrorUtil;
 import fit.columnar.ContentAs;
 import fit.columnar.QueryRowResponse;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 
 public class QueryRowUtil {
@@ -33,7 +33,7 @@ public class QueryRowUtil {
     return processRow(executeQueryRequest.hasContentAs() ? executeQueryRequest.getContentAs() : null, row);
   }
 
-  public static RowProcessingResult processRow(ContentAs contentAs, Row row) {
+  public static RowProcessingResult processRow(@Nullable ContentAs contentAs, Row row) {
     if (contentAs != null) {
       var content = ContentAsUtil.contentType(contentAs, row);
       if (content.isSuccess()) {
