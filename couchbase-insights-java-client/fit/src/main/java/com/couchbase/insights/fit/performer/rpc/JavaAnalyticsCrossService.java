@@ -236,7 +236,7 @@ public class JavaAnalyticsCrossService extends ColumnarCrossServiceGrpc.Columnar
     var startTime = startTiming();
     try {
       var streamer = queryResultStreamers.get(request.getQueryHandle());
-      responseObserver.onNext(streamer.blockForRow());
+      responseObserver.onNext(streamer.blockForRow(request.hasContentAs() ? request.getContentAs() : null));
     } catch (Throwable err) {
       responseObserver.onNext(fit.columnar.QueryRowResponse.newBuilder()
         .setMetadata(ResultUtil.responseMetadata(startTime))

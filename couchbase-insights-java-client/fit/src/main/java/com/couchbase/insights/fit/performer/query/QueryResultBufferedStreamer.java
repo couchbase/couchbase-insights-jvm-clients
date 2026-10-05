@@ -24,6 +24,7 @@ import fit.columnar.EmptyResultOrFailureResponse;
 import fit.columnar.ExecuteQueryRequest;
 import fit.columnar.QueryResultMetadataResponse;
 import fit.columnar.QueryRowResponse;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -167,7 +168,10 @@ public class QueryResultBufferedStreamer implements ExecuteQueryStreamer {
     return asyncExecuteQuery.blockForQueryResult();
   }
 
-  public QueryRowResponse blockForRow() {
+  @Override
+  public QueryRowResponse blockForRow(fit.columnar.@Nullable ContentAs contentAs) {
+    // Rows are converted ahead of time using the request-level ContentAs from ExecuteQueryRequest,
+    // so the row-level ContentAs is not honored here. The driver currently sends the same value in both places.
     return asyncExecuteQuery.blockForRow();
   }
 

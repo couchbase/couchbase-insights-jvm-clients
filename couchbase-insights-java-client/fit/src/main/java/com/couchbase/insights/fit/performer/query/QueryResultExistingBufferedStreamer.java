@@ -23,139 +23,68 @@ import fit.columnar.ContentAs;
 import fit.columnar.EmptyResultOrFailureResponse;
 import fit.columnar.QueryResultMetadataResponse;
 import fit.columnar.QueryRowResponse;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Iterator;
 
 import static com.couchbase.insights.fit.performer.query.PushBasedStreamer.toFit;
 
-class ExistingBufferedStreamer extends Thread {
+/**
+ * Serves rows from a {@link QueryResult} that has already been fully buffered
+ * (by {@code QueryResultHandle.bufferRows()} in the startQuery flow).
+ * <p>
+ * Rows are converted lazily, one per {@link #blockForRow} call, so each row can be
+ * deserialized according to the {@code ContentAs} the driver sends with that row request.
+ */
+@NullMarked
+public class QueryResultExistingBufferedStreamer implements ExecuteQueryStreamer {
   private final Logger logger;
-  private final BlockingQueue<QueryRowResponse> rows = new LinkedBlockingQueue<>(1);
-  private final BlockingQueue<fit.columnar.EmptyResultOrFailureResponse> queryResult = new LinkedBlockingQueue<>(1);
-  private final CompletableFuture<fit.columnar.QueryResultMetadataResponse> metadata = new CompletableFuture<>();
-  private final AtomicBoolean rowsFinished = new AtomicBoolean(false);
   private final QueryResult result;
   private final String queryHandle;
+  private final Iterator<Row> rows;
 
-  public ExistingBufferedStreamer(QueryResult result, String queryHandle) {
+  public QueryResultExistingBufferedStreamer(QueryResult result, String queryHandle) {
     this.logger = LoggerFactory.getLogger("Query " + queryHandle);
     this.result = result;
     this.queryHandle = queryHandle;
-  }
-
-  public fit.columnar.QueryResultMetadataResponse blockForMetadata() {
-    try {
-      return metadata.get(30, TimeUnit.SECONDS);
-    } catch (ExecutionException e) {
-      throw new RuntimeException(e.getCause());
-    } catch (InterruptedException | TimeoutException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  public void cancel() {
-    logger.info("Cancelling query");
-    interrupt();
-  }
-
-  @Override
-  public void run() {
-      logger.info("Starting buffered query from existing result on handle {}", queryHandle);
-
-      try {
-        // todo think about timings
-        queryResult.put(ResultUtil.success(null));
-
-        for (Row next : result.rows()) {
-          // kludge: assume content as byte array
-          var contentAs = ContentAs.newBuilder().setAsByteArray(true).build();
-          var processed = QueryRowUtil.processRow(contentAs, next);
-          // This will block until the driver pulls it
-          rows.put(processed.row());
-        }
-
-        logger.info("Finished row iteration");
-        rowsFinished.set(true);
-
-        metadata.complete(fit.columnar.QueryResultMetadataResponse.newBuilder()
-          .setSuccess(toFit(result.metadata()))
-          .build());
-      }
-      catch (RuntimeException | InterruptedException err) {
-        logger.warn("ExistingBufferedStreamer thread failed unexpectedly: " + err);
-      }
-  }
-
-  public fit.columnar.QueryRowResponse blockForRow() {
-    try {
-      logger.info("Waiting for a row to be available");
-
-      if (rowsFinished.get()) {
-        if (!rows.isEmpty()) {
-          return rows.take();
-        }
-
-        logger.info("Row iteration is complete");
-
-        return fit.columnar.QueryRowResponse.newBuilder()
-                .setSuccess(fit.columnar.QueryRowResponse.Result.newBuilder()
-                        .setEndOfStream(true))
-                .build();
-      }
-
-      return rows.take();
-    } catch (InterruptedException e) {
-      logger.info("Interrupted taking row!");
-      throw new RuntimeException(e);
-    }
-  }
-
-  public EmptyResultOrFailureResponse blockForQueryResult() {
-    logger.info("Waiting for QueryResult available");
-
-    try {
-      return queryResult.take();
-    } catch (InterruptedException e) {
-      throw new RuntimeException(e);
-    }
-  }
-}
-
-public class QueryResultExistingBufferedStreamer implements ExecuteQueryStreamer {
-  private final String queryHandle;
-  private final ExistingBufferedStreamer asyncExecuteQuery;
-
-  public QueryResultExistingBufferedStreamer(QueryResult result, String queryHandle) {
-    this.queryHandle = queryHandle;
-    asyncExecuteQuery = new ExistingBufferedStreamer(result, queryHandle);
-    asyncExecuteQuery.start();
+    this.rows = result.rows().iterator();
   }
 
   @Override
   public EmptyResultOrFailureResponse blockForQueryResult() {
-    return asyncExecuteQuery.blockForQueryResult();
+    // The QueryResult already exists; this was established by AsyncFetchResults.
+    return ResultUtil.success(null);
   }
 
-  public QueryRowResponse blockForRow() {
-    return asyncExecuteQuery.blockForRow();
+  @Override
+  public synchronized QueryRowResponse blockForRow(@Nullable ContentAs contentAs) {
+    if (!rows.hasNext()) {
+      logger.info("Row iteration is complete");
+      return QueryRowResponse.newBuilder()
+        .setSuccess(QueryRowResponse.Result.newBuilder()
+          .setEndOfStream(true))
+        .build();
+    }
+    return QueryRowUtil.processRow(contentAs, rows.next()).row();
   }
 
+  @Override
   public QueryResultMetadataResponse blockForMetadata() {
-    return asyncExecuteQuery.blockForMetadata();
+    return QueryResultMetadataResponse.newBuilder()
+      .setSuccess(toFit(result.metadata()))
+      .build();
   }
 
+  @Override
   public void cancel() {
-    asyncExecuteQuery.cancel();
+    // Nothing to cancel; all rows are already buffered in memory.
+    logger.info("Cancel requested for already-buffered result; ignoring");
   }
 
+  @Override
   public String queryHandle() {
     return queryHandle;
   }

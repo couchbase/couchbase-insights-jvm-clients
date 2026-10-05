@@ -16,10 +16,18 @@
 
 package com.couchbase.insights.fit.performer.query;
 
+import fit.columnar.ContentAs;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
+
+@NullMarked
 public interface ExecuteQueryStreamer {
   fit.columnar.EmptyResultOrFailureResponse blockForQueryResult();
 
-  fit.columnar.QueryRowResponse blockForRow();
+  /**
+   * @param contentAs The row-level {@code ContentAs} from the driver's {@code QueryRowRequest}, if present.
+   */
+  fit.columnar.QueryRowResponse blockForRow(@Nullable ContentAs contentAs);
 
   fit.columnar.QueryResultMetadataResponse blockForMetadata();
 
