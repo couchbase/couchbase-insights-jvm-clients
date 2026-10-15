@@ -46,5 +46,5 @@ jobs:
 
       - name: Publish test results
         run: |
-          curl https://raw.githubusercontent.com/couchbaselabs/junit-markdown/refs/heads/main/JunitMarkdown.java --output ${{ runner.temp }}/JunitMarkdown.java
+          curl https://raw.githubusercontent.com/couchbaselabs/junit-markdown/df4dfedba16e9d13001c0fac81577adf6808cd97/JunitMarkdown.java --output ${{ runner.temp }}/JunitMarkdown.java
           java ${{ runner.temp }}/JunitMarkdown.java . >> $GITHUB_STEP_SUMMARY
