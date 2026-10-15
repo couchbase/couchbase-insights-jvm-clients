@@ -23,7 +23,9 @@ jobs:
           ref: ${{ inputs.tag }}
 
       - name: Verify the ref is actually a tag
-        run: git tag --list | grep --line-regexp ${{ inputs.tag }}
+        run: git tag --list | grep --fixed-strings --line-regexp -- "$TAG"
+        env:
+          TAG: ${{ inputs.tag }}
 
       - uses: actions/setup-java@v5
         with:
@@ -48,4 +50,6 @@ jobs:
           aws-region: us-west-1
 
       - name: Upload API documentation
-        run: aws s3 cp --recursive --acl public-read couchbase-insights-java-client/target/reports/apidocs/ s3://docs.couchbase.com/sdk-api/couchbase-operational-insights-java-client-${{ inputs.tag }}
+        run: aws s3 cp --recursive --acl public-read couchbase-insights-java-client/target/reports/apidocs/ "s3://docs.couchbase.com/sdk-api/couchbase-operational-insights-java-client-${TAG}"
+        env:
+          TAG: ${{ inputs.tag }}
