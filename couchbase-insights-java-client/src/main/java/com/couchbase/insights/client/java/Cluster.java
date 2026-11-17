@@ -22,6 +22,7 @@ import com.couchbase.insights.client.java.internal.utils.BuilderPropertySetter;
 import com.couchbase.insights.client.java.internal.utils.UserAgentBuilder;
 import com.couchbase.insights.client.java.internal.utils.VersionAndGitHash;
 import okhttp3.HttpUrl;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +38,8 @@ import static java.util.Objects.requireNonNull;
 public class Cluster implements Queryable, Closeable {
   private static final Logger log = LoggerFactory.getLogger(Cluster.class);
 
+  private static final String SDK_VERSION = VersionAndGitHash.from(Cluster.class).version();
+
   private static final BuilderPropertySetter propertySetter = BuilderPropertySetter.builder()
     .registerCommonTypes()
     .pathComponentTransformer(Cluster::lowerSnakeCaseToLowerCamelCase)
@@ -47,16 +50,12 @@ public class Cluster implements Queryable, Closeable {
 
   private final ClusterOptions.Unmodifiable options;
   private final HttpUrl baseUrl;
+  private final UUID clientId = UUID.randomUUID();
 
-  private final String userAgent = new UserAgentBuilder()
-    .append(
-      "java-insights",
-      VersionAndGitHash.from(Cluster.class).version(),
-      "id=" + UUID.randomUUID()
-    )
-    .appendJava()
-    .appendOs()
-    .build();
+  /**
+   * The complete User-Agent header value, including the caller's product information (if any).
+   */
+  private volatile String userAgent = appendSdk(new UserAgentBuilder()).build();
 
   private Cluster(String baseUrl, Credential initalCredential, ClusterOptions.Unmodifiable options) {
     this.baseUrl = requireNoUsernameOrPassword(HttpUrl.get(baseUrl));
@@ -82,11 +81,11 @@ public class Cluster implements Queryable, Closeable {
       new AnalyticsOkHttpClient(
         options,
         url,
-        credential
+        credential,
+        () -> this.userAgent
       ),
       url,
-      options,
-      userAgent
+      options
     );
   }
 
@@ -228,6 +227,43 @@ public class Cluster implements Queryable, Closeable {
 
     // Don't close the old query executor, because we don't want to interfere with in-flight requests.
     // The OkHttp resources automatically release themselves after a period of inactivity.
+  }
+
+  /**
+   * Sets the identity of the application or library using this SDK.
+   * <p>
+   * Prepended to the User-Agent header sent with future requests.
+   * Replaces any previous value set by this method.
+   *
+   * @param productName Name of the product. Must not be empty.
+   * @param productVersion Optional product version. May be null.
+   * @param comments Optional comments.
+   * @throws IllegalArgumentException if the product name is empty.
+   */
+  public void userAgent(
+    String productName,
+    @Nullable String productVersion,
+    String... comments
+  ) {
+    this.userAgent = appendSdk(
+      new UserAgentBuilder().append(productName, productVersion, comments)
+    ).build();
+  }
+
+  /**
+   * Removes the identity set by {@link #userAgent(String, String, String...)}.
+   * <p>
+   * Future requests send a User-Agent header that identifies only this SDK.
+   */
+  public void clearUserAgent() {
+    this.userAgent = appendSdk(new UserAgentBuilder()).build();
+  }
+
+  private UserAgentBuilder appendSdk(UserAgentBuilder builder) {
+    return builder
+      .append("java-insights", SDK_VERSION, "id=" + clientId)
+      .appendJava()
+      .appendOs();
   }
 
   /**

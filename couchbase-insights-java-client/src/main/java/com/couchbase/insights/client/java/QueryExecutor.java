@@ -74,7 +74,6 @@ class QueryExecutor {
     Duration.ofMinutes(1)
   );
 
-  private final String userAgent;
   private final AnalyticsOkHttpClient httpClient;
   final HttpUrl baseUrl;
   final HttpUrl apiV1RequestUrl;
@@ -84,8 +83,7 @@ class QueryExecutor {
   public QueryExecutor(
     AnalyticsOkHttpClient httpClient,
     HttpUrl baseUrl,
-    ClusterOptions.Unmodifiable clusterOptions,
-    String userAgent
+    ClusterOptions.Unmodifiable clusterOptions
   ) {
     this.httpClient = requireNonNull(httpClient);
     this.baseUrl = requireNonNull(baseUrl);
@@ -98,7 +96,6 @@ class QueryExecutor {
     this.clusterOptions = requireNonNull(clusterOptions);
 
     this.maybeCouchbaseInternalNonProd = baseUrl.host().endsWith(".nonprod-project-avengers.com");
-    this.userAgent = requireNonNull(userAgent);
   }
 
   public QueryResult executeQuery(
@@ -455,9 +452,7 @@ class QueryExecutor {
     Consumer<Row> rowAction,
     Deserializer deserializer
   ) {
-    Request request = requestBuilder
-      .header("User-Agent", userAgent)
-      .build();
+    Request request = requestBuilder.build();
 
     OkHttpClient client = httpClient.clientWithTimeout(callTimeout);
     Call call = client.newCall(request);
