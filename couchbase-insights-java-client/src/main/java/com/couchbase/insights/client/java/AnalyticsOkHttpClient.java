@@ -58,11 +58,13 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 import static com.couchbase.insights.client.java.QueryExecutor.propagateInterruption;
 import static com.couchbase.insights.client.java.internal.utils.lang.CbCollections.listOf;
 import static com.couchbase.insights.client.java.internal.utils.lang.CbThrowables.propagate;
 import static com.couchbase.insights.client.java.internal.utils.lang.CbThrowables.throwIfInstanceOf;
+import static java.util.Objects.requireNonNull;
 
 class AnalyticsOkHttpClient implements Closeable {
 
@@ -99,7 +101,14 @@ class AnalyticsOkHttpClient implements Closeable {
     }
   };
 
-  public AnalyticsOkHttpClient(ClusterOptions.Unmodifiable options, HttpUrl url, Credential credential) {
+  public AnalyticsOkHttpClient(
+    ClusterOptions.Unmodifiable options,
+    HttpUrl url,
+    Credential credential,
+    Supplier<String> userAgent
+  ) {
+    requireNonNull(userAgent);
+
     this.defaultQueryTimeout = options.timeout().queryTimeout();
     Duration connectTimeout = options.timeout().connectTimeout();
 
@@ -142,16 +151,21 @@ class AnalyticsOkHttpClient implements Closeable {
 
     clientBuilder.addInterceptor(chain -> {
       Request request = chain.request();
+      Request.Builder builder = request.newBuilder();
+
+      // Get the value every time, because it can change after the cluster is created.
+      // Leave it alone if the caller already set one (InternalUnsupportedHttpClient).
+      if (request.header("User-Agent") == null) {
+        builder.header("User-Agent", userAgent.get());
+      }
 
       // get the value every time in case the credential is dynamic (deprecated)
       String authorizationHeaderValue = credential.httpAuthorizationHeaderValue();
       if (authorizationHeaderValue != null) {
-        request = request.newBuilder()
-          .header("Authorization", authorizationHeaderValue)
-          .build();
+        builder.header("Authorization", authorizationHeaderValue);
       }
 
-      return chain.proceed(request);
+      return chain.proceed(builder.build());
     });
 
     this.client = clientBuilder.build();
